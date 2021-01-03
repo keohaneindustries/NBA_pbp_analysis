@@ -6,7 +6,7 @@
 2. clone this repo to your local machine (recommend working off of a branch, obviously).
 3. edit the directories and filepaths hard-coded in `.nba_pbp_analysis/data/cf.py` to match the locations on your local machine.  
 4. compile and store a relatively clean, uniform dataset from the various raw data sources by running `.nba_pbp_analysis/data/pbp/cleaning/clean.py`.  
-5. confirm the data cleaning was successful and view some samples of the data by running `.nba_pbp_analysis/data/pbp/cleaning/clean.py`.
+5. confirm the data cleaning was successful and view some samples of the data by running `.nba_pbp_analysis/data/load.py`.
 
 Note: This repo is currently NOT a library that you can install to your venv. I recommend working out of PyCharm.
 
