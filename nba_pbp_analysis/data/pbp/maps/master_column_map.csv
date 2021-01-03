@@ -1,0 +1,144 @@
+﻿master_col,desc,col_BDB,col_834,notes
+a1,name of player 1 on court for away team,a1,[map player id],create a matching column in the 834 data set by mapping [HOME/AWAY]_PLAYER_ID_[N] to player names
+a2,name of player 2 on court for away team,a2,[map player id],create a matching column in the 834 data set by mapping [HOME/AWAY]_PLAYER_ID_[N] to player names
+a3,name of player 3 on court for away team,a3,[map player id],create a matching column in the 834 data set by mapping [HOME/AWAY]_PLAYER_ID_[N] to player names
+a4,name of player 4 on court for away team,a4,[map player id],create a matching column in the 834 data set by mapping [HOME/AWAY]_PLAYER_ID_[N] to player names
+a5,name of player 5 on court for away team,a5,[map player id],create a matching column in the 834 data set by mapping [HOME/AWAY]_PLAYER_ID_[N] to player names
+assist_player,,assist,[map player id],create a matching column in the 834 data set by mapping ASSIST_PLAYER_ID to player names
+jump_ball_away_player,,away,[map player id],create a matching column in the 834 data set by mapping JUMP_BALL_AWAY_PLAYER_ID to player names
+away_score,current away team score,away_score,AWAY_SCORE,
+block_player,,block,[map player id],create a matching column in the 834 data set by mapping BLOCK_PLAYER_ID to player names
+converted_x,converted x coordinate of shot,converted_x,[X],
+converted_y,converted y coordinate of shot,converted_y,[X],
+season_desc,description of the season segment (e.g. year + reg season or playoffs),data_set,[X],
+date,game date,date,[X],
+description,raw textual description of event,description,[collapse],collapse HOMEDESCRIPTION NEUTRALDESCRIPTION and AWAYDESCRIPTION
+elapsed_in_quarter,time elapsed in quarter,elapsed,[convert from seconds],create a matching column in the 834 data set by converting TIME from seconds to a time object
+sub_entered_player,,entered,[map player id],create a matching column in the 834 data set by mapping SUB_ENTERED_PLAYER_ID to player names
+event_type,category of action (text),event_type,[enumerated],I suspect EVENTMSGACTIONTYPE is the enumerated equivalent in the 834 data
+game_id,nba game id,game_id,GAME_ID,
+h1,name of player 1 on court for home team,h1,[map player id],create a matching column in the 834 data set by mapping [HOME/AWAY]_PLAYER_ID_[N] to player names
+h2,name of player 2 on court for home team,h2,[map player id],create a matching column in the 834 data set by mapping [HOME/AWAY]_PLAYER_ID_[N] to player names
+h3,name of player 3 on court for home team,h3,[map player id],create a matching column in the 834 data set by mapping [HOME/AWAY]_PLAYER_ID_[N] to player names
+h4,name of player 4 on court for home team,h4,[map player id],create a matching column in the 834 data set by mapping [HOME/AWAY]_PLAYER_ID_[N] to player names
+h5,name of player 5 on court for home team,h5,[map player id],create a matching column in the 834 data set by mapping [HOME/AWAY]_PLAYER_ID_[N] to player names
+jump_ball_home_player,,home,[map player id],create a matching column in the 834 data set by mapping JUMP_BALL_HOME_PLAYER_ID to player names
+home_score,current home team score,home_score,HOME_SCORE,
+sub_leaving_player,,left,[map player id],create a matching column in the 834 data set by mapping SUB_LEAVING_PLAYER_ID to player names
+free_throw_num,free throw number,num,FREE_THROW_NUM,
+opponent,name of opponent player for event,opponent,[X],
+original_x,original x coordinate of shot,original_x,[X],
+original_y,original y coordinate of shot,original_y,[X],
+free_throw_outof,number of free throws,outof,FREE_THROW_TOTAL,
+period,current period,period,PERIOD,
+play_id,play number/order in game,play_id,EVENTNUM,
+play_duration,duration of play,play_length,[X],
+player1,name of player 1 (in play by play description),player,PLAYER1_NAME,
+points_on_shot,points scored for player's shot,points,POINTS_SCORED,
+jump_ball_retrieved_player,,possession,[map player id],create a matching column in the 834 data set by mapping JUMP_BALL_RETRIEVED_PLAYER_ID to player names
+reason,[ignore; redundant],reason,[X],
+remaining_in_quarter,time left in quarter,remaining_time,PCTIMESTRING,
+result,,result,[enumerated. collapse],"collapse SHOT_MADE + FREE_THROW_MADE and convert from TRUE/FALSE to ""made""/""missed"""
+shot_distance,shot distance from basket,shot_distance,[X],
+steal_player,,steal,[map player id],create a matching column in the 834 data set by mapping STEAL_PLAYER_ID to player names
+team1,team abbreviation for player 1 (in play-by-play description),team,PLAYER1_TEAM_ABBREVIATION,
+event_subtype,further breakdown category of action (text),type,[enumerated],I suspect EVENTMSGTYPE is the enumerated equivalent in the 834 data
+a_id1,player id for player 1 on court for away team,[X],AWAY_PLAYER_ID_1,
+a_time1,current player play time for player 1 on away team,[X],AWAY_PLAYER_ID_1_PLAY_TIME,
+a_id2,player id for player 2 on court for away team,[X],AWAY_PLAYER_ID_2,
+a_time2,current player play time for player 2 on away team,[X],AWAY_PLAYER_ID_2_PLAY_TIME,
+a_id3,player id for player 3 on court for away team,[X],AWAY_PLAYER_ID_3,
+a_time3,current player play time for player 3 on away team,[X],AWAY_PLAYER_ID_3_PLAY_TIME,
+a_id4,player id for player 4 on court for away team,[X],AWAY_PLAYER_ID_4,
+a_time4,current player play time for player 4 on away team,[X],AWAY_PLAYER_ID_4_PLAY_TIME,
+a_id5,player id for player 5 on court for away team,[X],AWAY_PLAYER_ID_5,
+a_time5,current player play time for player 5 on away team,[X],AWAY_PLAYER_ID_5_PLAY_TIME,
+h_id1,player id for player 1 on court for home team,[X],HOME_PLAYER_ID_1,
+h_time1,current player play time for player 1 on home team,[X],HOME_PLAYER_ID_1_PLAY_TIME,
+h_id2,player id for player 2 on court for home team,[X],HOME_PLAYER_ID_2,
+h_time2,current player play time for player 2 on home team,[X],HOME_PLAYER_ID_2_PLAY_TIME,
+h_id3,player id for player 3 on court for home team,[X],HOME_PLAYER_ID_3,
+h_time3,current player play time for player 3 on home team,[X],HOME_PLAYER_ID_3_PLAY_TIME,
+h_id4,player id for player 4 on court for home team,[X],HOME_PLAYER_ID_4,
+h_time4,current player play time for player 4 on home team,[X],HOME_PLAYER_ID_4_PLAY_TIME,
+h_id5,player id for player 5 on court for home team,[X],HOME_PLAYER_ID_5,
+h_time5,current player play time for player 5 on home team,[X],HOME_PLAYER_ID_5_PLAY_TIME,
+elapsed_sec,current time elapsed in seconds,[X],TIME,
+event_type_id,type of action (enum),[X],EVENTMSGACTIONTYPE,rename to event_type_id
+event_subtype_id,further breakdown of action (enum),[X],EVENTMSGTYPE,"rename to event_subtype_id. should map to ""type"" col in BDB (or event_subtype col)"
+AWAYDESCRIPTION,raw textual description of event for away team action,[X],VISITORDESCRIPTION,rename to AWAYDESCRIPTION
+HOMEDESCRIPTION,raw textual description of event for home team action,[X],HOMEDESCRIPTION,
+NEUTRALDESCRIPTION,raw textual description of event if neutral action,[X],NEUTRALDESCRIPTION,
+team_event,team related to event,[X],TEAM,rename to team_event
+ASSIST_COUNT,current assist count for the player,[X],ASSIST_COUNT,
+ASSIST_PLAYER_ID,player id who made the assist,[X],ASSIST_PLAYER_ID,
+AWAY_TEAM,away team name,[X],AWAY_TEAM,
+BLOCK_COUNT,current block count for the player,[X],BLOCK_COUNT,
+BLOCK_PLAYER_ID,player id who made the block,[X],BLOCK_PLAYER_ID,
+COACH_TECHNICAL,,[X],COACH_TECHNICAL,
+DOUBLE_PERSONAL_FOUL_COUNT_1,foul count for player id 1 in double personal foul,[X],DOUBLE_PERSONAL_FOUL_COUNT_1,
+DOUBLE_PERSONAL_FOUL_COUNT_2,foul count for player id 2 in double personal foul,[X],DOUBLE_PERSONAL_FOUL_COUNT_2,
+DOUBLE_PERSONAL_PLAYER_ID_1,player id 1 for double personal,[X],DOUBLE_PERSONAL_PLAYER_ID_1,
+DOUBLE_PERSONAL_PLAYER_ID_2,player id 2 for double personal call,[X],DOUBLE_PERSONAL_PLAYER_ID_2,
+DOUBLE_TECHNICAL_PLAYER_ID_1,player id 1 for double technical infraction,[X],DOUBLE_TECHNICAL_PLAYER_ID_1,
+DOUBLE_TECHNICAL_PLAYER_ID_2,player id 2 for double technical infraction,[X],DOUBLE_TECHNICAL_PLAYER_ID_2,
+DRAWN_FOUL_PLAYER_ID,player id for who drew the foul,[X],DRAWN_FOUL_PLAYER_ID,
+EJECTION,,[X],EJECTION,
+EJECTION_PLAYER_ID,player id who was ejected,[X],EJECTION_PLAYER_ID,
+FOUL_COUNT,current foul count for player who committed the foul,[X],FOUL_COUNT,
+FOUL_TYPE,foul type,[X],FOUL_TYPE,
+FOULED_BY_PLAYER_ID,player id who committed the foul,[X],FOULED_BY_PLAYER_ID,
+FREE_THROW_MADE,whether free throw was made,[X],FREE_THROW_MADE,
+FREE_THROW_PLAYER_ID,player id for player shooting free throw,[X],FREE_THROW_PLAYER_ID,
+HOME_TEAM,home team name,[X],HOME_TEAM,
+PLAYER1_TEAM_CITY,team city for player 1,[X],PLAYER1_TEAM_CITY,
+PLAYER1_TEAM_ID,team id for player 1,[X],PLAYER1_TEAM_ID,
+PLAYER1_TEAM_NICKNAME,team nickname for player 1,[X],PLAYER1_TEAM_NICKNAME,
+PLAYER2_ID,nba player id for player 2 (in play by play description),[X],PLAYER2_ID,
+PERIOD_END,end of period,[X],PERIOD_END,
+PERIOD_START,start of period,[X],PERIOD_START,
+PERSON1TYPE,position (1-5) of player1,[X],PERSON1TYPE,
+PERSON2TYPE,position (1-5) of player2,[X],PERSON2TYPE,
+PERSON3TYPE,position (1-5) of player3,[X],PERSON3TYPE,
+PLAYER1_ID,nba player id for player 1 (in play by play description),[X],PLAYER1_ID,
+JUMP_BALL_AWAY_PLAYER_ID,player id for away team who jumped for jump ball,[X],JUMP_BALL_AWAY_PLAYER_ID,
+JUMP_BALL_HOME_PLAYER_ID,player id for home team who jumped for jump ball,[X],JUMP_BALL_HOME_PLAYER_ID,
+JUMP_BALL_RETRIEVED_PLAYER_ID,player ide for who retrieved the jump ball,[X],JUMP_BALL_RETRIEVED_PLAYER_ID,
+PLAYER2_TEAM_ABBREVIATION,team abbreviation for player 2,[X],PLAYER2_TEAM_ABBREVIATION,
+PLAYER2_TEAM_CITY,team city for player 2,[X],PLAYER2_TEAM_CITY,
+PLAYER2_TEAM_ID,team id for player 2,[X],PLAYER2_TEAM_ID,
+PLAYER2_TEAM_NICKNAME,team nickname for player 2,[X],PLAYER2_TEAM_NICKNAME,
+PLAYER3_ID,nba player id for player 3 (in play by play description),[X],PLAYER3_ID,
+PLAYER3_NAME,player 3 name,[X],PLAYER3_NAME,
+PLAYER3_TEAM_ABBREVIATION,team abbreviation for player 3,[X],PLAYER3_TEAM_ABBREVIATION,
+PLAYER3_TEAM_CITY,team city for player 3,[X],PLAYER3_TEAM_CITY,
+PLAYER3_TEAM_ID,team id for player 3,[X],PLAYER3_TEAM_ID,
+PLAYER3_TEAM_NICKNAME,team nickname for player 3,[X],PLAYER3_TEAM_NICKNAME,
+POSSESSION_ID,numbered possession information (warning: incomplete),[X],POSSESSION_ID,
+REBOUND_DEFENSIVE_COUNT,current player's defensive rebound count,[X],REBOUND_DEFENSIVE_COUNT,
+REBOUND_OFFENSIVE_COUNT,current player's offensive rebound count,[X],REBOUND_OFFENSIVE_COUNT,
+REBOUND_PLAYER_ID,player id who made the rebound,[X],REBOUND_PLAYER_ID,
+REBOUND_TEAM,team who rebounded it (if not a person),[X],REBOUND_TEAM,
+SCORE,game score,[X],SCORE,
+SCOREMARGIN,difference of game score (home - away),[X],SCOREMARGIN,
+SHOT_MADE,whether the shot was made,[X],SHOT_MADE,
+SHOT_PLAYER_ID,player id who shot the ball,[X],SHOT_PLAYER_ID,
+SHOT_TYPE,type of shot,[X],SHOT_TYPE,
+STEAL_COUNT,current player's steal count,[X],STEAL_COUNT,
+STEAL_PLAYER_ID,player id for player who stole the ball,[X],STEAL_PLAYER_ID,
+SUB_ENTERED_PLAYER_ID,player id for player entering the game,[X],SUB_ENTERED_PLAYER_ID,
+SUB_LEAVING_PLAYER_ID,player id for player leaving the game,[X],SUB_LEAVING_PLAYER_ID,
+SUB_TYPE,further categorization of event type,[X],SUB_TYPE,
+TEAM_FOUL_COUNT,team foul count,[X],TEAM_FOUL_COUNT,
+TEAM_TURNOVER_COUNT,team's turnover count so far,[X],TEAM_TURNOVER_COUNT,
+TECHNICAL_PLAYER_ID,player id who committed a technical foul,[X],TECHNICAL_PLAYER_ID,
+TIMEOUT_TYPE,type of timeout,[X],TIMEOUT_TYPE,
+TOTAL_POINTS_SCORED,current total points scored for player,[X],TOTAL_POINTS_SCORED,
+TURNOVER_COUNT,current player's total turnover count,[X],TURNOVER_COUNT,
+TURNOVER_PLAYER_ID,player id for who committed a turnover,[X],TURNOVER_PLAYER_ID,
+TURNOVER_TYPE,type of turnover,[X],TURNOVER_TYPE,
+TYPE,type of event,[X],TYPE,
+VIOLATION,,[X],VIOLATION,
+VIOLATION_PLAYER_ID,player id who committed a violation,[X],VIOLATION_PLAYER_ID,
+WCTIMESTRING,real world time,[X],WCTIMESTRING,
+PLAYER2_NAME,name of player 2 (in play by play description),[X],PLAYER2_NAME,
