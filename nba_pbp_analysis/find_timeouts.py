@@ -24,11 +24,11 @@ def get_two_minute_outcomes(years_requested: list) -> pd.DataFrame:
     # awaytimeouts = awaydesc[awaydesc.str.contains('Time')]
     # timeout_type = df['TIMEOUT_TYPE'].dropna()
     last_play_before_2_mins = \
-        df[df['remaining_in_quarter'] >= dt.datetime(year=1900, month=1, day=1, hour=0, minute=2)].groupby('game_id')[
-            'remaining_in_quarter'].last().reset_index()
+    df[df['rem_in_quarter_dt'] >= dt.datetime(year=1900, month=1, day=1, hour=0, minute=2)].groupby('game_id')[
+        'rem_in_quarter_dt'].last().reset_index()
     last_play_before_2_mins['last_play_before_2_mins'] = True
     
-    df = df.merge(last_play_before_2_mins, on=['game_id', 'remaining_in_quarter'], how='left')
+    df = df.merge(last_play_before_2_mins, on=['game_id', 'rem_in_quarter_dt'], how='left')
     
     df['last_play_before_2_mins'].fillna(False, inplace=True)
     df['SCOREMARGIN'] = (df['home_score'] - df['away_score'].astype(np.int)).astype(np.int)

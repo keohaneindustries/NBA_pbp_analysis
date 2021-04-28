@@ -60,7 +60,7 @@ def _retype_data(df):
     """parse and re-type data as necessary (to match master spec's)"""
     print("re-typing data...")
     # raise NotImplementedError  # TODO
-    df['remaining_in_quarter'] = pd.to_datetime(df['remaining_in_quarter'], format="%M:%S")
+    df.loc[:, 'rem_in_quarter_dt'] = pd.to_datetime(df.loc[:, 'remaining_in_quarter'], format="%M:%S")
     return df
 
 
