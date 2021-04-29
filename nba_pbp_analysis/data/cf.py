@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 
 pd.options.display.width = 175
@@ -14,3 +15,8 @@ RAW_ROOT_DIR_BIGDATABALL = DATA_ROOT_DIR + "raw\\BigDataBall\\"
 CLEAN_ROOT_DIR = DATA_ROOT_DIR + "clean\\"
 CLEAN_OUTPUT_FILETYPE = ".csv"
 OVERWRITE_FILES = False
+
+GLOBAL_VERSION_ID = "v0"
+GLOBAL_SAVE_FINAL_FILES_CSV = True
+GLOBAL_SAVE_INTERMEDIATE_FILES_CSV = False
+GLOBAL_SAVE_DIRPATH = "C:\\Users\\lukeo\\Documents\\Basketball\\NBA_pbp_analysis\\nba_pbp_analysis\\data\\store"
