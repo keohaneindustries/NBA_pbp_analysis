@@ -1,0 +1,7 @@
+,did_win_game,t_remaining_s,game_points_per_min,rel_score_margin,team_rem_timeouts,opp_rem_timeouts
+did_win_game,1.0,-0.0,0.0,0.7504,0.1994,-0.1994
+t_remaining_s,-0.0,1.0,-0.0366,0.0,0.4037,0.4037
+game_points_per_min,0.0,-0.0366,1.0,-0.0,-0.1915,-0.1915
+rel_score_margin,0.7504,0.0,-0.0,1.0,0.2272,-0.2272
+team_rem_timeouts,0.1994,0.4037,-0.1915,0.2272,1.0,0.2981
+opp_rem_timeouts,-0.1994,0.4037,-0.1915,-0.2272,0.2981,1.0

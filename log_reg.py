@@ -6,10 +6,24 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, classification_report
 from sklearn.linear_model import LogisticRegression
 
+from nba_pbp_analysis.data.local_io_utils import LocalIOUtils
 from project_data import get_stored_classifier_data
+
+# %% globals
+
+SAVE_CORR_COEF_TO_CSV = True
 
 
 # %% fx
+
+def calc_corr_coef(df: pd.DataFrame, save_to_csv: bool = False):
+    df_corr = df.corr()
+    print("correlation matrix:\n{}".format(df_corr.applymap('{:,.2f}'.format)))
+    if save_to_csv is True:
+        LocalIOUtils.save_csv(df=df_corr.round(4), fileid="corr_matrix_coef")
+    return df_corr
+
+
 ## Function for Question 2 - Logistic Regression ##
 def log_reg(df, test_size=0.2, seed=2):
     # Setting Seed #
@@ -44,6 +58,7 @@ def log_reg(df, test_size=0.2, seed=2):
 # %% main
 def main():
     df_classifier_data = get_stored_classifier_data()
+    _ = calc_corr_coef(df=df_classifier_data, save_to_csv=SAVE_CORR_COEF_TO_CSV)
     log_reg(df=df_classifier_data)
     return
 
