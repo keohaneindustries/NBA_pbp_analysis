@@ -83,6 +83,8 @@ class ClassifierData(BaseIntermediateDataIO):
     @staticmethod
     def _calc_game_points_per_min(df: pd.DataFrame) -> pd.DataFrame:
         """ avg points scored per minute in the game to that point """
+        df['home_score'] = df['home_score'].fillna(0).astype(float)
+        df['away_score'] = df['away_score'].fillna(0).astype(float)
         df['game_points_per_min'] = (df['home_score'] + df['away_score']) * 60. / (
                 (df['t_remaining_s'] - 48 * 60) * (-1))
         return df
@@ -96,7 +98,7 @@ class ClassifierData(BaseIntermediateDataIO):
     @staticmethod
     def _slice_to_relevant_vars_for_home_away_split(df: pd.DataFrame) -> pd.DataFrame:
         relevant_vars = ['game_id', 'play_id', 't_remaining_s', 'game_points_per_min', 'winning_team',
-                         'home_score', 'away_score', 'timeouts_rem_home', 'timeouts_rem_away']
+                         'home_score', 'away_score', 'home_to_rem', 'away_to_rem']
         return df.loc[:, relevant_vars]
     
     @staticmethod
@@ -126,12 +128,12 @@ class ClassifierData(BaseIntermediateDataIO):
     
     @staticmethod
     def _align_home_vars(df: pd.DataFrame) -> pd.DataFrame:
-        return df.rename(columns={'timeouts_rem_home': 'team_rem_timeouts', 'timeouts_rem_away': 'opp_rem_timeouts',
+        return df.rename(columns={'home_to_rem': 'team_rem_timeouts', 'away_to_rem': 'opp_rem_timeouts',
                                   'home_score': 'team_score', 'away_score': 'opp_score'})
     
     @staticmethod
     def _align_away_vars(df: pd.DataFrame) -> pd.DataFrame:
-        return df.rename(columns={'timeouts_rem_away': 'team_rem_timeouts', 'timeouts_rem_home': 'opp_rem_timeouts',
+        return df.rename(columns={'away_to_rem': 'team_rem_timeouts', 'home_to_rem': 'opp_rem_timeouts',
                                   'away_score': 'team_score', 'home_score': 'opp_score'})
     
     @staticmethod
