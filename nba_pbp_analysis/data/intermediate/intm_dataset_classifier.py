@@ -22,6 +22,7 @@ class ClassifierData(BaseIntermediateDataIO):
     @classmethod
     def source(cls, years_requested: list, df_winners=None, df_close_games=None, df_timeouts_remaining=None,
                **kwargs) -> pd.DataFrame:
+        print("sourcing ClassifierData...")
         ## input
         # get all plays last 3 mins
         max_rem_in_quarter = dt.datetime(year=1900, month=1, day=1, hour=0, minute=3, second=0)
