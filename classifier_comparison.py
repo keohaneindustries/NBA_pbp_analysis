@@ -67,11 +67,15 @@ def comparing_models(df, test_size=0.2):
     # Plotting the Accuracies #
     plt.figure(figsize=(10, 5))
     plt.bar(accuracies.keys(), accuracies.values())
+    plt.ylim((0., 1.))
 
     for i, v in enumerate(accuracies.values()):
-        plt.text(i - 0.08, v - 0.05, str(np.round(v, 4) * 100) + '%', color='w')
+        plt.text(i - 0.08, v - 0.05, "{:0.2%}".format(v), color='w')
 
-    plt.savefig('images/model_comparison.png')
+    plt.title("Accuracy by Model\n(n_train={:,}; n_test={:,})".format(len(X_train), len(X_test)))
+    plt.tight_layout()
+    plt.savefig('images/model_comparison_accuracy.png')
+    plt.show()
 
 
 # %% main
