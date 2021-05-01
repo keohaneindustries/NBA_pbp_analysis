@@ -20,7 +20,7 @@ class TimeoutsRemainingData(BaseIntermediateDataIO):
         ]
     
     @classmethod
-    def source(cls, years_requested: list, n_timeouts_allowed: int = 8, **kwargs) -> pd.DataFrame:
+    def source(cls, years_requested: list, **kwargs) -> pd.DataFrame:
         ## input
         # get all plays 4th quarter
         df = cls.read_raw_data(years_requested=years_requested, **kwargs)
@@ -29,12 +29,15 @@ class TimeoutsRemainingData(BaseIntermediateDataIO):
         
         ## calcs
         # calc timeouts remaining for each play
-        df = cls._calc_timeouts_remaining(df=df, n_timeouts_allowed=n_timeouts_allowed)
+        df = cls._calc_timeouts_remaining(df=df)
         
-        ## output
         # slice to minimum timespan required in final output
         max_rem_in_quarter = dt.datetime(year=1900, month=1, day=1, hour=0, minute=3, second=0)
         df = cls._slice_to_relevant_timespan(df=df, max_rem_in_quarter=max_rem_in_quarter, period=4)
+        
+        df = cls._enforce_4th_period_max_to(df=df)
+        
+        ## output
         # slice to minimum variables required in output
         df = cls._slice_to_output_vars(df=df)
         # set index for uniform .csv file I/O
@@ -44,21 +47,27 @@ class TimeoutsRemainingData(BaseIntermediateDataIO):
     
     @staticmethod
     def _slice_to_relevant_vars_for_timeout_remaining_backfill(df: pd.DataFrame) -> pd.DataFrame:
-        relevant_vars = ['game_id', 'play_id', 'HOMEDESCRIPTION', 'AWAYDESCRIPTION', 'period', 'rem_in_quarter_dt']
+        relevant_vars = ['game_id', 'play_id', 'HOMEDESCRIPTION', 'AWAYDESCRIPTION', 'period', 'rem_in_quarter_dt',
+                         'season']
         return df.loc[:, relevant_vars]
     
     @classmethod
-    def _calc_timeouts_remaining(cls, df: pd.DataFrame, n_timeouts_allowed: int = 8) -> pd.DataFrame:
-        home_timeouts = cls._calc_timeouts_used_by_side(df=df, side="home", n_timeouts_allowed=n_timeouts_allowed)
-        away_timeouts = cls._calc_timeouts_used_by_side(df=df, side="away", n_timeouts_allowed=n_timeouts_allowed)
+    def _calc_timeouts_remaining(cls, df: pd.DataFrame) -> pd.DataFrame:
+        df = cls._calc_timeouts_allowed(df=df)
+        home_timeouts = cls._calc_timeouts_used_by_side(df=df, side="home")
+        away_timeouts = cls._calc_timeouts_used_by_side(df=df, side="away")
         
         timeouts = df[['game_id', 'play_id', 'period', 'rem_in_quarter_dt']].join(home_timeouts).join(away_timeouts)
         timeouts = timeouts.set_index('game_id', append=True).groupby(level=1).ffill().reset_index(level=1)
         return timeouts
     
     @classmethod
-    def _calc_timeouts_used_by_side(cls, df: pd.DataFrame, side: str = "home",
-                                    n_timeouts_allowed: int = 8) -> pd.DataFrame:
+    def _calc_timeouts_allowed(cls, df: pd.DataFrame):
+        df['to_n_allowed'] = np.where(df['season'] >= 2017, 7, 8)
+        return df
+    
+    @classmethod
+    def _calc_timeouts_used_by_side(cls, df: pd.DataFrame, side: str = "home") -> pd.DataFrame:
         if side == "home":
             col_name = "HOMEDESCRIPTION"
         elif side == "away":
@@ -69,8 +78,11 @@ class TimeoutsRemainingData(BaseIntermediateDataIO):
         n_timeouts = str_timeouts[col_name].str[10:].str.extract('(\d)(?:\D+)(\d)').fillna(-1).astype(np.int)
         n_timeouts.columns = ['to_n_full', 'to_n_short']
         n_timeouts['to_n_total'] = n_timeouts['to_n_full'] + n_timeouts['to_n_short']
-        n_timeouts['to_rem'] = (n_timeouts['to_n_total'] - n_timeouts_allowed) * (-1)
+        
+        n_timeouts = n_timeouts.join(df[['to_n_allowed']])
+        n_timeouts['to_rem'] = n_timeouts['to_n_allowed'] - n_timeouts['to_n_total']
         n_timeouts[n_timeouts['to_n_total'] < 0] = np.nan
+        n_timeouts.drop('to_n_allowed', axis=1, inplace=True)
         n_timeouts.columns = [side + "_" + col for col in n_timeouts.columns]
         return n_timeouts.copy()
     
@@ -81,6 +93,26 @@ class TimeoutsRemainingData(BaseIntermediateDataIO):
     @staticmethod
     def _slice_to_relevant_timespan(df: pd.DataFrame, max_rem_in_quarter: dt.datetime, period: int = 4) -> pd.DataFrame:
         return df[(df['rem_in_quarter_dt'] <= max_rem_in_quarter) & (df['period'] == period)].dropna()
+    
+    @classmethod
+    def _enforce_4th_period_max_to(cls, df: pd.DataFrame) -> pd.DataFrame:
+        t_rem_pre_2017 = dt.datetime(year=1900, month=1, day=1, hour=0, minute=3, second=0)
+        t_rem_post_2017 = dt.datetime(year=1900, month=1, day=1, hour=0, minute=2, second=0)
+        for col in ['home_to_rem', 'away_to_rem']:
+            df[col] = np.where(
+                df['season'] < 2017,
+                np.where(
+                    (df['rem_in_quarter_dt'] <= t_rem_pre_2017) & (df['period'] == 4),
+                    np.column_stack([df[col].values, np.full_like(df[col].values, 3)]).min(axis=1),
+                    df[col]
+                ),
+                np.where(
+                    (df['rem_in_quarter_dt'] <= t_rem_post_2017) & (df['period'] == 4),
+                    np.column_stack([df[col].values, np.full_like(df[col].values, 2)]).min(axis=1),
+                    df[col]
+                )
+            )
+        return df
     
     @staticmethod
     def _slice_to_output_vars(df: pd.DataFrame) -> pd.DataFrame:

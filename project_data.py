@@ -15,25 +15,28 @@ _GLOBAL_SAVE_FINAL_FILES_CSV = True
 _GLOBAL_SAVE_INTERMEDIATE_FILES_CSV = True
 
 
+# https://www.espn.com/nba/story/_/id/19974682/nba-board-governors-approves-rule-drop-outs-18-14-per-game
+
 # %% main
 def main():
-    # _years_requested = list(range(2008, 2019))
-    _years_requested = list(range(2008, 2009))
+    _years_requested = list(range(2008, 2019))
+    # _years_requested = list(range(2015, 2019))
+    # _years_requested = list(range(2008, 2009))
     # _years_requested = list(range(2008, 2011))
-
+    
     local_io = LocalIOUtils
     # local_io.save_dirpath = GLOBAL_SAVE_DIRPATH
-
+    
     requester = IntermediateDataRequest
     # requester.save_final_file = _GLOBAL_SAVE_FINAL_FILES_CSV
     # requester.save_int_files = _GLOBAL_SAVE_INTERMEDIATE_FILES_CSV
-
-    # df_winners = requester.get_data(data_sourcer=WinnerData(local_io=local_io), years_requested=_years_requested)
-    # df_close_games = requester.get_data(data_sourcer=CloseGamesByGameIDData(local_io=local_io),
-    #                                     years_requested=_years_requested)
+    
+    df_winners = requester.get_data(data_sourcer=WinnerData(local_io=local_io), years_requested=_years_requested)
+    df_close_games = requester.get_data(data_sourcer=CloseGamesByGameIDData(local_io=local_io),
+                                        years_requested=_years_requested)
     df_timeouts_remaining = requester.get_data(data_sourcer=TimeoutsRemainingData(local_io=local_io),
-                                               years_requested=_years_requested, force_source=True)
-
+                                               years_requested=_years_requested)
+    
     # TODO ANOVA data: index=obs_id
     # TODO get all plays last 3 mins
     # TODO filter to "legit" plays (e.g. not substitutions) - make sure to retain timeouts for next step
@@ -42,10 +45,10 @@ def main():
     # TODO left join close game; filter to close game == True
     # TODO
     # TODO Classifier data: index=obs_id
-    # df_classifier_data = requester.get_data(data_sourcer=ClassifierData(local_io=local_io),
-    #                                         years_requested=_years_requested, df_winners=df_winners,
-    #                                         df_close_games=df_close_games, df_timeouts_remaining=df_timeouts_remaining)
-
+    df_classifier_data = requester.get_data(data_sourcer=ClassifierData(local_io=local_io),
+                                            years_requested=_years_requested, df_winners=df_winners,
+                                            df_close_games=df_close_games, df_timeouts_remaining=df_timeouts_remaining)
+    
     return
 
 
