@@ -26,6 +26,34 @@ def get_stored_classifier_data() -> pd.DataFrame:
     return df_classifier_data
 
 
+def convert_stored_classifier_data_to_predictors(df: pd.DataFrame) -> pd.DataFrame:
+    # check that the stored data contains the columns we think it does
+    req_col_names = ['did_win_game', 't_remaining_s', 'game_points_per_min', 'rel_score_margin', 'team_rem_timeouts',
+                     'opp_rem_timeouts']
+    for col in req_col_names:
+        assert col in df.columns
+
+    df = df[df['t_remaining_s'] > 0.]  # drop observations where the game has ended
+
+    # define interaction variables
+    df.loc[:, 'point_margin_per_min_rem'] = df['rel_score_margin'] / df['t_remaining_s'] * 60.
+    df.loc[:, 'std_point_margin_per_min_rem'] = df['point_margin_per_min_rem'] / df['game_points_per_min'] * df[
+        'game_points_per_min'].mean()
+    return df
+
+
+def drop_extraneous_predictors(df: pd.DataFrame) -> pd.DataFrame:
+    cols_to_drop = [
+        't_remaining_s',
+        'game_points_per_min',
+        'rel_score_margin',
+        'opp_rem_timeouts',
+        'point_margin_per_min_rem',
+        # 'std_point_margin_per_min_rem'
+    ]
+    return df.drop(cols_to_drop, axis=1)
+
+
 # %% main
 def main():
     _years_requested = list(range(2008, 2019))
