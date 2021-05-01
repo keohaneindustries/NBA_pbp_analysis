@@ -1,6 +1,7 @@
 # %% imports
 import numpy as np
 import pandas as pd
+import time
 import matplotlib.pyplot as plt
 # from matplotlib.colors import ListedColormap
 from sklearn.model_selection import train_test_split
@@ -50,7 +51,11 @@ def comparing_models(df, test_size=0.2):
 
     # Running the Process for the Three Classifiers #
     for name, clf in zip(names, classifiers):
+        _start_time = time.time()
+        print("running {}...".format(name))
         clf.fit(X_train, y_train)
+        _end_time = time.time()
+        print("completed {} in {} seconds.".format(name, int(_end_time-_start_time)))
         score = clf.score(X_test, y_test)
         conf_matrix = confusion_matrix(y_test, clf.predict(X_test))
         cr = classification_report(y_test, clf.predict(X_test))
