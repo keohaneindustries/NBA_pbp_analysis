@@ -30,32 +30,24 @@ def comparing_models(df, test_size=0.2):
         train_test_split(X, y, test_size=test_size, random_state=42)
 
     # Setting up the Models #
-    names = [
-        "Logistic Regression",
-        "K Nearest Neighbors",
-        "SVM",
-        "KSVM",
-        "Neural Network"
-    ]
-
-    classifiers = [
-        LogisticRegression(),
-        KNeighborsClassifier(),
-        SVC(kernel='linear'),
-        SVC(kernel='rbf'),
-        MLPClassifier(hidden_layer_sizes=(20, 10))
-    ]
+    classifiers = {
+        "Logistic Regression": LogisticRegression(),
+        "K Nearest Neighbors": KNeighborsClassifier(),
+        "SVM": SVC(kernel='linear'),
+        "KSVM": SVC(kernel='rbf'),
+        "Neural Network": MLPClassifier(hidden_layer_sizes=(20, 10))
+    }
 
     # Creating a Dictionary for the Accuracies #
     accuracies = {}
 
     # Running the Process for the Three Classifiers #
-    for name, clf in zip(names, classifiers):
+    for name, clf in classifiers.items():
         _start_time = time.time()
-        print("running {}...".format(name))
+        print("fitting {}...".format(name))
         clf.fit(X_train, y_train)
         _end_time = time.time()
-        print("completed {} in {} seconds.".format(name, int(_end_time-_start_time)))
+        print("fitted {} in {:0.1f} seconds.".format(name, _end_time - _start_time))
         score = clf.score(X_test, y_test)
         conf_matrix = confusion_matrix(y_test, clf.predict(X_test))
         cr = classification_report(y_test, clf.predict(X_test))
