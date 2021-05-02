@@ -51,6 +51,7 @@ class AnovaData(BaseIntermediateDataIO):
         df = cls._remove_timeout_plays(df=df)
         max_rem_in_quarter = dt.datetime(year=1900, month=1, day=1, hour=0, minute=3, second=0)
         df = cls._slice_to_relevant_timespan(df=df, max_rem_in_quarter=max_rem_in_quarter)
+        df = cls._calc_t_remaining_s(df=df)
         df = cls._slice_to_relevant_vars_for_home_away_split(df=df)  # TODO
 
         ## transform home/away
@@ -191,9 +192,15 @@ class AnovaData(BaseIntermediateDataIO):
         return df[(df['rem_in_quarter_dt'] <= max_rem_in_quarter) & (df['rem_in_quarter_dt'] >= one_s)].dropna()
 
     @staticmethod
+    def _calc_t_remaining_s(df: pd.DataFrame) -> pd.DataFrame:
+        df['t_remaining_s'] = (df['rem_in_quarter_dt'] - dt.datetime(year=1900, month=1, day=1, hour=0, minute=0,
+                                                                     second=0)).dt.total_seconds().astype(int)
+        return df
+
+    @staticmethod
     def _slice_to_relevant_vars_for_home_away_split(df: pd.DataFrame) -> pd.DataFrame:
         relevant_vars = ['game_id', 'play_id', 'possession', 'home_poss_follow_to', 'away_poss_follow_to',
-                         'home_points_on_play', 'away_points_on_play']
+                         'home_points_on_play', 'away_points_on_play', 't_remaining_s']
         return df.loc[:, relevant_vars]
 
     @classmethod
@@ -207,5 +214,5 @@ class AnovaData(BaseIntermediateDataIO):
 
     @staticmethod
     def _slice_to_output_vars(df: pd.DataFrame) -> pd.DataFrame:
-        relevant_vars = ['game_id', 'play_id', 'is_home', 'poss_follow_to', 'points_on_play']
+        relevant_vars = ['game_id', 'play_id', 'is_home', 'poss_follow_to', 'points_on_play', 't_remaining_s']
         return df.loc[:, relevant_vars]
