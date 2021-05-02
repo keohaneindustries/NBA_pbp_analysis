@@ -1,0 +1,16 @@
+                      Logit Regression Results                     
+Dep. Variable:  ,did_win_game    ,  No. Observations:  ,288291     
+Model:          ,Logit           ,  Df Residuals:      ,288288     
+Method:         ,MLE             ,  Df Model:          ,     2     
+Date:           ,Sun, 02 May 2021,  Pseudo R-squ.:     ,0.4742     
+Time:           ,14:10:07        ,  Log-Likelihood:    ,-1.0506e+05
+converged:      ,True            ,  LL-Null:           ,-1.9983e+05
+Covariance Type:,nonrobust       ,  LLR p-value:       , 0.000     
+                            ,   coef   , std err ,    z    ,P>|z| ,  [0.025 ,  0.975] 
+const                       ,   -0.2716,    0.019,  -14.230, 0.000,   -0.309,   -0.234
+team_rem_timeouts           ,    0.1105,    0.007,   14.882, 0.000,    0.096,    0.125
+std_point_margin_per_min_rem,    0.4042,    0.002,  220.859, 0.000,    0.401,    0.408
+
+Possibly complete quasi-separation: A fraction 0.13 of observations can be
+perfectly predicted. This might indicate that there is complete
+quasi-separation. In this case some parameters will not be identified.
