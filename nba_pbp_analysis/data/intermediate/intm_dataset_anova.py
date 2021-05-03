@@ -37,6 +37,8 @@ class AnovaData(BaseIntermediateDataIO):
         df = cls._infer_possession(df=df)
         # calc for each play: points scored on play
         df = cls._calc_points_scored_on_play(df=df)
+        # calc leading team
+        df = cls._calc_leading_team(df=df)
         # aggregate consecutive offensive plays
         df = cls._aggregate_consecutive_offensive_plays(df=df)
         # flag offensive plays immediately following timeouts (append bool; not filter)
@@ -160,12 +162,19 @@ class AnovaData(BaseIntermediateDataIO):
         return df
 
     @staticmethod
+    def _calc_leading_team(df: pd.DataFrame) -> pd.DataFrame:
+        df['SCOREMARGIN'] = df['home_score'] - df['away_score']
+        df['leading_team'] = np.where(df['SCOREMARGIN'] == 0, "tied", np.where(df['SCOREMARGIN'] > 0, "home", "away"))
+        return df
+
+    @staticmethod
     def _aggregate_consecutive_offensive_plays(df: pd.DataFrame) -> pd.DataFrame:
         agg = (df['possession'].shift() != df['possession']).cumsum()
         pop = df.groupby(agg)[['home_points_on_play', 'away_points_on_play']].sum().reset_index(drop=True)
 
-        cols_to_keep = ['game_id', 'play_id', 'event_type_id', 'event_subtype_id', 'possession', 'rem_in_quarter_dt']
-        df_descriptive = df.groupby(agg)[cols_to_keep].last().reset_index(drop=True)
+        cols_to_keep = ['game_id', 'play_id', 'event_type_id', 'event_subtype_id', 'possession', 'rem_in_quarter_dt',
+                        'leading_team']
+        df_descriptive = df.groupby(agg)[cols_to_keep].first().reset_index(drop=True)
 
         df_agg = pd.concat([pop, df_descriptive], axis=1)
         return df_agg
@@ -200,12 +209,22 @@ class AnovaData(BaseIntermediateDataIO):
     @staticmethod
     def _slice_to_relevant_vars_for_home_away_split(df: pd.DataFrame) -> pd.DataFrame:
         relevant_vars = ['game_id', 'play_id', 'possession', 'home_poss_follow_to', 'away_poss_follow_to',
-                         'home_points_on_play', 'away_points_on_play', 't_remaining_s']
+                         'home_points_on_play', 'away_points_on_play', 't_remaining_s', 'leading_team']
         return df.loc[:, relevant_vars]
 
     @classmethod
     def _transform_home_vs_away(cls, df: pd.DataFrame) -> pd.DataFrame:
         df['is_home'] = np.where(df['possession'] == "home", True, False)
+        df['lead_status'] = np.where(
+            df['leading_team'] == "tied",
+            "tied",
+            np.where(
+                ((df['possession'] == "home") & (df['leading_team'] == "home")) | (
+                        (df['possession'] == "away") & (df['leading_team'] == "away")),
+                "leading",
+                "trailing"
+            )
+        )
         df['points_on_play'] = np.where(df['possession'] == "home", df['home_points_on_play'],
                                         df['away_points_on_play'])
         df['poss_follow_to'] = np.where(df['possession'] == "home", df['home_poss_follow_to'],
@@ -214,5 +233,6 @@ class AnovaData(BaseIntermediateDataIO):
 
     @staticmethod
     def _slice_to_output_vars(df: pd.DataFrame) -> pd.DataFrame:
-        relevant_vars = ['game_id', 'play_id', 'is_home', 'poss_follow_to', 'points_on_play', 't_remaining_s']
+        relevant_vars = ['game_id', 'play_id', 'is_home', 'poss_follow_to', 'points_on_play', 't_remaining_s',
+                         'lead_status']
         return df.loc[:, relevant_vars]
