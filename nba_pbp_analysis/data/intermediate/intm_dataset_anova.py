@@ -27,6 +27,7 @@ class AnovaData(BaseIntermediateDataIO):
         # get all plays last 3 mins
         max_rem_in_quarter = dt.datetime(year=1900, month=1, day=1, hour=0, minute=4, second=0)
         df = cls.read_raw_data(years_requested=years_requested, max_rem_in_quarter=max_rem_in_quarter, **kwargs)
+        df = cls._calc_t_remaining_s(df=df)
         # _slice_to_relevant_vars_for_anova_calcs
         df = cls._slice_to_relevant_vars_for_anova_calcs(df=df)
         # filter to "legit" plays (e.g. not substitutions) - make sure to retain timeouts for next step
@@ -52,8 +53,8 @@ class AnovaData(BaseIntermediateDataIO):
         ## removing extraneous/duplicate data
         df = cls._remove_timeout_plays(df=df)
         max_rem_in_quarter = dt.datetime(year=1900, month=1, day=1, hour=0, minute=3, second=0)
-        df = cls._slice_to_relevant_timespan(df=df, max_rem_in_quarter=max_rem_in_quarter)
-        df = cls._calc_t_remaining_s(df=df)
+        max_s_rem = 180
+        df = cls._slice_to_relevant_timespan(df=df, max_s_rem=max_s_rem)
         df = cls._slice_to_relevant_vars_for_home_away_split(df=df)  # TODO
 
         ## transform home/away
@@ -67,9 +68,15 @@ class AnovaData(BaseIntermediateDataIO):
         return df
 
     @staticmethod
+    def _calc_t_remaining_s(df: pd.DataFrame) -> pd.DataFrame:
+        df['t_remaining_s'] = (df['rem_in_quarter_dt'] - dt.datetime(year=1900, month=1, day=1, hour=0, minute=0,
+                                                                     second=0)).dt.total_seconds().astype(int)
+        return df
+
+    @staticmethod
     def _slice_to_relevant_vars_for_anova_calcs(df: pd.DataFrame) -> pd.DataFrame:
         relevant_vars = ['game_id', 'play_id', 'event_subtype_id', 'event_type_id', 'HOMEDESCRIPTION',
-                         'AWAYDESCRIPTION', 'home_score', 'away_score', 'rem_in_quarter_dt'
+                         'AWAYDESCRIPTION', 'home_score', 'away_score', 't_remaining_s'
                          ]
         return df.loc[:, relevant_vars]
 
@@ -130,8 +137,8 @@ class AnovaData(BaseIntermediateDataIO):
         home_goaltend = (~df['HOMEDESCRIPTION'].isna()) & (df['event_subtype_id'] == 7) & (df['event_type_id'] == 2)
         away_goaltend = (~df['AWAYDESCRIPTION'].isna()) & (df['event_subtype_id'] == 7) & (df['event_type_id'] == 2)
 
-        home_timeout = (~df['HOMEDESCRIPTION'].isna()) & (df['event_subtype_id'] == 9)
-        away_timeout = (~df['AWAYDESCRIPTION'].isna()) & (df['event_subtype_id'] == 9)
+        home_timeout = (~df['HOMEDESCRIPTION'].isna()) & (df['event_subtype_id'] == 9) & (df['t_remaining_s'] > 0)
+        away_timeout = (~df['AWAYDESCRIPTION'].isna()) & (df['event_subtype_id'] == 9) & (df['t_remaining_s'] > 0)
 
         home_possession = home_shot | home_turnover | home_offensive_foul | home_delay_of_game | away_goaltend
         away_possession = away_shot | away_turnover | away_offensive_foul | away_delay_of_game | home_goaltend
@@ -163,8 +170,10 @@ class AnovaData(BaseIntermediateDataIO):
 
     @staticmethod
     def _calc_leading_team(df: pd.DataFrame) -> pd.DataFrame:
-        df['SCOREMARGIN'] = df['home_score'] - df['away_score']
-        df['leading_team'] = np.where(df['SCOREMARGIN'] == 0, "tied", np.where(df['SCOREMARGIN'] > 0, "home", "away"))
+        df['SCOREMARGIN_before_play'] = df['home_score'] - df["home_points_on_play"] - df['away_score'] + df[
+            "away_points_on_play"]
+        df['leading_team'] = np.where(df['SCOREMARGIN_before_play'] == 0, "tied",
+                                      np.where(df['SCOREMARGIN_before_play'] > 0, "home", "away"))
         return df
 
     @staticmethod
@@ -172,7 +181,7 @@ class AnovaData(BaseIntermediateDataIO):
         agg = (df['possession'].shift() != df['possession']).cumsum()
         pop = df.groupby(agg)[['home_points_on_play', 'away_points_on_play']].sum().reset_index(drop=True)
 
-        cols_to_keep = ['game_id', 'play_id', 'event_type_id', 'event_subtype_id', 'possession', 'rem_in_quarter_dt',
+        cols_to_keep = ['game_id', 'play_id', 'event_type_id', 'event_subtype_id', 'possession', 't_remaining_s',
                         'leading_team']
         df_descriptive = df.groupby(agg)[cols_to_keep].first().reset_index(drop=True)
 
@@ -181,10 +190,10 @@ class AnovaData(BaseIntermediateDataIO):
 
     @classmethod
     def _flag_offensive_plays_immediately_following_timeout(cls, df: pd.DataFrame) -> pd.DataFrame:
-        df['home_poss_follow_to'] = (df['possession'].shift(-1) == "home_timeout") & (df['possession'] == "home") & (
-                df['game_id'].shift(-1) == df['game_id'])
-        df['away_poss_follow_to'] = (df['possession'].shift(-1) == "away_timeout") & (df['possession'] == "away") & (
-                df['game_id'].shift(-1) == df['game_id'])
+        df['home_poss_follow_to'] = (df['possession'].shift(1) == "home_timeout") & (df['possession'] == "home") & (
+                df['game_id'].shift(1) == df['game_id'])
+        df['away_poss_follow_to'] = (df['possession'].shift(1) == "away_timeout") & (df['possession'] == "away") & (
+                df['game_id'].shift(1) == df['game_id'])
         return df
 
     @staticmethod
@@ -196,15 +205,8 @@ class AnovaData(BaseIntermediateDataIO):
         return df[df['event_subtype_id'] != 9]
 
     @staticmethod
-    def _slice_to_relevant_timespan(df: pd.DataFrame, max_rem_in_quarter: dt.datetime) -> pd.DataFrame:
-        one_s = dt.datetime(year=1900, month=1, day=1, hour=0, minute=0, second=1)
-        return df[(df['rem_in_quarter_dt'] <= max_rem_in_quarter) & (df['rem_in_quarter_dt'] >= one_s)].dropna()
-
-    @staticmethod
-    def _calc_t_remaining_s(df: pd.DataFrame) -> pd.DataFrame:
-        df['t_remaining_s'] = (df['rem_in_quarter_dt'] - dt.datetime(year=1900, month=1, day=1, hour=0, minute=0,
-                                                                     second=0)).dt.total_seconds().astype(int)
-        return df
+    def _slice_to_relevant_timespan(df: pd.DataFrame, max_s_rem: int) -> pd.DataFrame:
+        return df[(df['t_remaining_s'] <= max_s_rem) & (df['t_remaining_s'] >= 1)].dropna()
 
     @staticmethod
     def _slice_to_relevant_vars_for_home_away_split(df: pd.DataFrame) -> pd.DataFrame:
