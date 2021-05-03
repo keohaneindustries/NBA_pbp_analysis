@@ -134,7 +134,7 @@ def plot_qq_pairs(d_datasets_pairs: OrderedDict, var_name: str = 't_remaining_s'
             i += 1
             _ax = plt.subplot(n_datasets, m_per_dataset, i)
             # _res = stats.probplot(sample, plot=plt)
-            _res = qqplot_2samples(data1=sample[0], data2=sample[1], ax=_ax, line='r')
+            _res = qqplot_2samples(data1=sample[0], data2=sample[1], ax=_ax, line='45')
             _ax.set_title("")
             _ax.grid(True)
             _ax.set_xticklabels([])
