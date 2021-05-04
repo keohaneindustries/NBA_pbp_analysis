@@ -17,7 +17,8 @@ from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
 # from sklearn.decomposition import PCA
 
-from project_data import get_stored_classifier_data
+from project_data import get_stored_classifier_data, convert_stored_classifier_data_to_predictors, \
+    drop_extraneous_predictors
 
 
 # %% fx
@@ -81,6 +82,7 @@ def comparing_models(df, test_size=0.2):
 # %% main
 def main():
     df_classifier_data = get_stored_classifier_data()
+    df_classifier_data = drop_extraneous_predictors(convert_stored_classifier_data_to_predictors(df=df_classifier_data))
     comparing_models(df_classifier_data)
     return
 
