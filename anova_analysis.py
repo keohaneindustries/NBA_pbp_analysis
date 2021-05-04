@@ -10,6 +10,8 @@ from nba_pbp_analysis.data.local_io_utils import LocalIOUtils
 from project_data import get_stored_anova_data
 
 # %% globals
+RANDOM_SEED = 2
+P_SIG_THRESHOLD = 0.05
 VAR_POINTS_ON_PLAY = 'points_on_play'
 VAR_LEAD_STATUS = 'lead_status'
 VAR_POSS_FOLLOW_TO = 'poss_follow_to'
@@ -57,28 +59,31 @@ def downsample_anova_data(df_anova_data: pd.DataFrame, dep_var: str, cat_vars: l
     return df_downsampled.copy()
 
 
-# %% anova fx
+# %% anova fx - 2-sided
 
 
-def run_2s_anova(df_anova_data: pd.DataFrame, dep_var: str, cat_1: str, cat_2: str, downsample: bool = True, **kwargs):
+def run_2s_anova(df_anova_data: pd.DataFrame, dep_var: str, cat_1: str, cat_2: str, downsample: bool = True,
+                 p_sig: float = 0.05, **kwargs):
     if downsample is True:
         df_anova_data = downsample_anova_data(df_anova_data=df_anova_data, dep_var=dep_var, cat_vars=[cat_1, cat_2],
                                               **kwargs)
     formula = "{dep_var} ~ C({cat_1}) + C({cat_2}) + C({cat_2}):C({cat_1})".format(dep_var=dep_var, cat_1=cat_1,
                                                                                    cat_2=cat_2)
-    print("fitting ANOVA...")
+    print("fitting 2-sided ANOVA...")
     model = ols(formula, df_anova_data).fit()
     table = sm.stats.anova_lm(model, typ=2)
+    table['signif'] = table["PR(>F)"] <= p_sig
     return table
 
 
 def iteratively_run_2s_anova(df_anova_data: pd.DataFrame, dep_var: str = VAR_POINTS_ON_PLAY,
                              cat_1: str = VAR_POSS_FOLLOW_TO, cat_2: str = VAR_IS_HOME,
-                             addtl_cat_to_slice: str = VAR_LEAD_STATUS, downsample: bool = True):
+                             addtl_cat_to_slice: str = VAR_LEAD_STATUS, downsample: bool = True, **kwargs):
     table = run_2s_anova(df_anova_data=df_anova_data.copy(), dep_var=dep_var, cat_1=cat_1, cat_2=cat_2,
-                         downsample=downsample)
-    slice_name = "all data" if addtl_cat_to_slice is None else addtl_cat_to_slice
+                         downsample=downsample, **kwargs)
+    slice_name = "all_data" if addtl_cat_to_slice is None else "{}_all".format(addtl_cat_to_slice)
     print('2-sided ANOVA table for {}:\n{}\n'.format(slice_name, table))
+    LocalIOUtils.save_csv(df=table, fileid="ANOVA_2s_model_{}".format(slice_name))
     
     if addtl_cat_to_slice is None:
         return
@@ -86,18 +91,115 @@ def iteratively_run_2s_anova(df_anova_data: pd.DataFrame, dep_var: str = VAR_POI
     cats_to_slice = df_anova_data[addtl_cat_to_slice].unique()
     for cat in cats_to_slice:
         _df = df_anova_data[df_anova_data[addtl_cat_to_slice] == cat].copy()
-        table = run_2s_anova(df_anova_data=_df, dep_var=dep_var, cat_1=cat_1, cat_2=cat_2, downsample=downsample)
-        slice_name = "{}='{}'".format(addtl_cat_to_slice, cat)
+        table = run_2s_anova(df_anova_data=_df, dep_var=dep_var, cat_1=cat_1, cat_2=cat_2, downsample=downsample,
+                             **kwargs)
+        slice_name = "{}_{}".format(addtl_cat_to_slice, cat)
         print('2-sided ANOVA table for {}:\n{}\n'.format(slice_name, table))
+        LocalIOUtils.save_csv(df=table, fileid="ANOVA_2s_model_{}".format(slice_name))
     return
 
 
-def run_anova(df_anova_data: pd.DataFrame, **kwargs):
+# %% anova fx - 3-sided
+
+def formula_anova_3s_DEFAULT(dep_var: str, cat_1: str, cat_2: str, cat_3: str) -> str:
+    formula = """{dep_var} ~
+            C({cat_1}, Sum) + C({cat_2}, Sum) + C({cat_3}, Sum) +
+            C({cat_2}, Sum):C({cat_1}, Sum) + C({cat_3}, Sum):C({cat_1}, Sum) + C({cat_2}, Sum):C({cat_3}, Sum) +
+            C({cat_2}, Sum):C({cat_3}, Sum):C({cat_1}, Sum)
+            """.format(dep_var=dep_var, cat_1=cat_1, cat_2=cat_2, cat_3=cat_3)
+    return formula
+
+
+def formula_anova_3s_ITERATION_2(dep_var: str, cat_1: str, cat_2: str, cat_3: str) -> str:
+    """ dropped the 3-sided combination term """
+    formula = """{dep_var} ~
+            C({cat_1}, Sum) + C({cat_2}, Sum) + C({cat_3}, Sum) +
+            C({cat_2}, Sum):C({cat_1}, Sum) + C({cat_3}, Sum):C({cat_1}, Sum) + C({cat_2}, Sum):C({cat_3}, Sum)
+            """.format(dep_var=dep_var, cat_1=cat_1, cat_2=cat_2, cat_3=cat_3)
+    return formula
+
+
+def formula_anova_3s_ITERATION_3(dep_var: str, cat_1: str, cat_2: str, cat_3: str) -> str:
+    formula = """points_on_play ~
+    C(is_home, Sum) + C(lead_status, Sum) + C(poss_follow_to, Sum) +
+    C(is_home, Sum):C(poss_follow_to, Sum)
+    """
+    return formula
+
+
+def formula_anova_3s_ITERATION_4(dep_var: str, cat_1: str, cat_2: str, cat_3: str) -> str:
+    formula = '''points_on_play ~ C(lead_status, Sum) +
+                C(is_home, Sum):C(poss_follow_to, Sum)'''
+    return formula
+
+
+def run_3s_anova(df_anova_data: pd.DataFrame, dep_var: str, cat_1: str, cat_2: str, cat_3: str, formula: str = None,
+                 downsample: bool = True, model_id: str = None, p_sig: float = 0.05, **kwargs):
+    if formula is None:
+        formula_anova_3s_DEFAULT(dep_var, cat_1, cat_2, cat_3)
+    if downsample is True:
+        df_anova_data = downsample_anova_data(df_anova_data=df_anova_data, dep_var=dep_var,
+                                              cat_vars=[cat_1, cat_2, cat_3], **kwargs)
+    str_model_id = " ({})".format(model_id) if model_id is not None else ""
+    print("fitting 3-sided ANOVA{}...".format(str_model_id))
+    model = ols(formula, df_anova_data).fit()
+    table = sm.stats.anova_lm(model, typ=3)
+    table['signif'] = table["PR(>F)"] <= p_sig
+    return table
+
+
+def iteratively_run_3s_anova(df_anova_data: pd.DataFrame, dep_var: str = VAR_POINTS_ON_PLAY,
+                             cat_1: str = VAR_POSS_FOLLOW_TO, cat_2: str = VAR_IS_HOME, cat_3: str = VAR_LEAD_STATUS,
+                             downsample: bool = True, **kwargs):
+    # iteration 1
+    seed = 1
+    table = run_3s_anova(df_anova_data=df_anova_data.copy(), dep_var=dep_var, cat_1=cat_1, cat_2=cat_2, cat_3=cat_3,
+                         formula=formula_anova_3s_DEFAULT(dep_var, cat_1, cat_2, cat_3), downsample=downsample,
+                         **kwargs)
+    print('3-sided ANOVA table for all data:\n{}\n'.format(table))
+    LocalIOUtils.save_csv(df=table, fileid="ANOVA_3s_model_all_factors")
+    
+    # iteration 2
+    model_id = "iteration_2"
+    seed = 2
+    print("(dropped the 3-sided combination term)")
+    table = run_3s_anova(df_anova_data=df_anova_data.copy(), dep_var=dep_var, cat_1=cat_1, cat_2=cat_2, cat_3=cat_3,
+                         formula=formula_anova_3s_ITERATION_2(dep_var, cat_1, cat_2, cat_3), downsample=downsample,
+                         model_id=model_id, seed=seed, **kwargs)
+    print('3-sided ANOVA table ({}):\n{}\n'.format(model_id, table))
+    LocalIOUtils.save_csv(df=table, fileid="ANOVA_3s_model_{}".format(model_id))
+    
+    # iteration 3
+    model_id = "iteration_3"
+    seed = 3
+    table = run_3s_anova(df_anova_data=df_anova_data.copy(), dep_var=dep_var, cat_1=cat_1, cat_2=cat_2, cat_3=cat_3,
+                         formula=formula_anova_3s_ITERATION_3(dep_var, cat_1, cat_2, cat_3), downsample=downsample,
+                         model_id=model_id, seed=seed, **kwargs)
+    print('3-sided ANOVA table ({}):\n{}\n'.format(model_id, table))
+    LocalIOUtils.save_csv(df=table, fileid="ANOVA_3s_model_{}".format(model_id))
+    
+    # iteration 4
+    model_id = "iteration_4"
+    seed = 4
+    table = run_3s_anova(df_anova_data=df_anova_data.copy(), dep_var=dep_var, cat_1=cat_1, cat_2=cat_2, cat_3=cat_3,
+                         formula=formula_anova_3s_ITERATION_4(dep_var, cat_1, cat_2, cat_3), downsample=downsample,
+                         model_id=model_id, seed=seed, **kwargs)
+    print('3-sided ANOVA table ({}):\n{}\n'.format(model_id, table))
+    LocalIOUtils.save_csv(df=table, fileid="ANOVA_3s_model_{}".format(model_id))
+
+
+# %% run anova
+
+def run_anova(df_anova_data: pd.DataFrame, seed: int = RANDOM_SEED, **kwargs):
     iteratively_run_2s_anova(df_anova_data=df_anova_data, dep_var=VAR_POINTS_ON_PLAY, cat_1=VAR_POSS_FOLLOW_TO,
-                             cat_2=VAR_IS_HOME, addtl_cat_to_slice=VAR_LEAD_STATUS, **kwargs)
+                             cat_2=VAR_IS_HOME, addtl_cat_to_slice=VAR_LEAD_STATUS, seed=seed, **kwargs)
     
     iteratively_run_2s_anova(df_anova_data=df_anova_data, dep_var=VAR_POINTS_ON_PLAY, cat_1=VAR_POSS_FOLLOW_TO,
-                             cat_2=VAR_LEAD_STATUS, addtl_cat_to_slice=VAR_IS_HOME, **kwargs)
+                             cat_2=VAR_LEAD_STATUS, addtl_cat_to_slice=VAR_IS_HOME, seed=seed, **kwargs)
+    
+    iteratively_run_3s_anova(df_anova_data=df_anova_data.copy(), dep_var=VAR_POINTS_ON_PLAY, cat_1=VAR_POSS_FOLLOW_TO,
+                             cat_2=VAR_LEAD_STATUS, cat_3=VAR_IS_HOME, **kwargs)
+    
     return
 
 
@@ -107,7 +209,7 @@ def main():
     _ = get_outcome_tree(df_anova_data=df_anova_data, dep_var=VAR_POINTS_ON_PLAY, cat_vars=GLOBAL_CAT_VARS,
                          sample_id='population')
     
-    run_anova(df_anova_data=df_anova_data)
+    run_anova(df_anova_data=df_anova_data, seed=RANDOM_SEED, p_sig=P_SIG_THRESHOLD)
     return
 
 
