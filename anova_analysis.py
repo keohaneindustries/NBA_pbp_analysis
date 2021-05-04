@@ -12,7 +12,7 @@ from project_data import get_stored_anova_data
 def _filter_anova_data(df_anova_data: pd.DataFrame) -> pd.DataFrame:
     df_anova_data = df_anova_data[df_anova_data['t_remaining_s'] > 0]  # drop observations where the game has ended
     # df_anova_data = df_anova_data[df_anova_data['t_remaining_s'] <= 60.]  # filter to last x seconds of data
-    df_anova_data = df_anova_data[df_anova_data['t_remaining_s'] <= 60.]  # filter to last x seconds of data
+    df_anova_data = df_anova_data[df_anova_data['t_remaining_s'] <= 30.]  # filter to last x seconds of data
     return df_anova_data
 
 
